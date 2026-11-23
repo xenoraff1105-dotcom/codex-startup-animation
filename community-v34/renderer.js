@@ -15,6 +15,36 @@
   const previousMarker = document.documentElement.getAttribute(marker);
   const style = document.createElement('style');
   style.id = styleId;
+  const mainSurfaceSelector = 'main[data-app-shell-main-surface="default"]';
+  const frameSelector = '[data-app-shell-frame="true"]';
+  const rowSelector = '[data-app-shell-workspace-row="true"]';
+  const workspaceSelector = '[data-app-shell-workspace="true"]';
+  const backingSelector = '[data-app-shell-surface-backing="true"]';
+  const contentSelector = '[data-app-shell-main-content-layout]';
+  const utilityMainSelector = mainSurfaceSelector + '[data-codex-history-swipe-page="true"][tabindex="-1"].relative.isolate.flex.min-h-0.min-w-0.flex-1.flex-col.outline-none';
+  const utilityParentSelector = 'div.contents.windows\\:flex.windows\\:flex-1.windows\\:overflow-hidden';
+  const utilityPaintSelector = 'div.relative.isolate.flex.min-h-0.flex-1.overflow-hidden:has(> div' + contentSelector + ')';
+  const legacyMainSelector = 'main._MainContentSurface_yl8z4_2[data-app-shell-main-surface="default"]';
+  const legacyPaintSelector = legacyMainSelector + ' > ._WorkspaceContent_yl8z4_2';
+  const legacyBackingSelector = frameSelector + ' > ' + rowSelector + ' > div[aria-hidden="true"]._PageSurface_yl8z4_2';
+  const activePage = ':not([data-app-shell-active-page="false"], [data-app-shell-active-page="false"] *)';
+  const utilityWorkspace = `div${frameSelector} > div${rowSelector} > div${workspaceSelector}`;
+  const utilityMain = `${utilityWorkspace} ${utilityParentSelector} > ${utilityMainSelector}${activePage}`;
+  const utilityPaint = `${utilityMain} > ${utilityPaintSelector}`;
+  const utilityBacking = `${utilityWorkspace} > div[aria-hidden="true"]${backingSelector}${activePage}`;
+  const chromeScope = 'html[data-codex-dragon-background="v1"] #root';
+  const utilitySidebar = `${utilityWorkspace} > aside.app-shell-left-panel[data-app-shell-left-panel-appearance="content-surface"]${activePage}`;
+  const utilityFooter = `${utilityPaint} .footer-A8ZvKV.pointer-events-none.absolute.inset-x-0.z-20:has(> [data-thread-scroll-footer="true"])`;
+  const utilityChromeStyle = `
+${chromeScope} ${utilitySidebar} { background-color: transparent !important; }
+${chromeScope} ${utilityPaint} > div${contentSelector} > div > div[aria-hidden="true"].pointer-events-none.absolute.inset-x-0.top-0.z-20.text-surface[class*="bg-[image:var(--app-shell-content-fade,"],
+${chromeScope} ${utilityFooter},
+${chromeScope} ${utilityFooter}::before,
+${chromeScope} ${utilityFooter}::after { background-color: transparent !important; background-image: none !important; }
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
+  ${chromeScope} ${utilitySidebar} { background-color: var(--color-surface, Canvas) !important; }
+}
+`;
   const styleTemplate = `
 /* Continuous wallpaper with clear window chrome. Keep text and controls opaque;
    only the audited background surfaces are transparent. */
@@ -30,7 +60,7 @@ html[data-codex-dragon-background="v1"] #root {
 html[data-codex-dragon-background="v1"] #root :is(
   [data-app-shell-frame],
   ._Workspace_yl8z4_2,
-  main._MainContentSurface_yl8z4_2[data-app-shell-main-surface="default"],
+  ${legacyMainSelector},
   ._LeftPanel_yl8z4_2,
   #app-shell-sidebar
 ) { background-color: transparent !important; }
@@ -93,14 +123,14 @@ html[data-codex-dragon-background="v1"] #root main[data-app-shell-main-surface="
   }
 }
 
-html[data-codex-dragon-background="v1"] #root main._MainContentSurface_yl8z4_2[data-app-shell-main-surface="default"] > ._WorkspaceContent_yl8z4_2::before { background-color: transparent !important; }
-html[data-codex-dragon-background="v1"] #root [data-app-shell-frame="true"] > [data-app-shell-workspace-row="true"] > div[aria-hidden="true"]._PageSurface_yl8z4_2 { background-color: transparent !important; }
+html[data-codex-dragon-background="v1"] #root ${legacyPaintSelector}::before { background-color: transparent !important; }
+html[data-codex-dragon-background="v1"] #root ${legacyBackingSelector} { background-color: transparent !important; }
 /* Clear only verified footer decorations. Glass variables style the composer;
    menus and controls retain their native behavior. Removing the marker restores
    the client's original backgrounds without changing its DOM or layout. */
-html[data-codex-dragon-background="v1"] #root main._MainContentSurface_yl8z4_2[data-app-shell-main-surface="default"] > ._WorkspaceContent_yl8z4_2 [data-thread-scroll-footer="true"] > div[aria-hidden="true"].pointer-events-none.absolute.inset-x-0.z-0.bottom-0.bg-surface { background-color: transparent !important; }
-html[data-codex-dragon-background="v1"] #root main._MainContentSurface_yl8z4_2[data-app-shell-main-surface="default"] > ._WorkspaceContent_yl8z4_2 .thread-scroll-container > div > div[aria-hidden="true"].pointer-events-none.sticky.bottom-0.z-10 > div[aria-hidden="true"].pointer-events-none.absolute.inset-x-0.z-0.from-surface { background-image: none !important; }
-html[data-codex-dragon-background="v1"] #root main._MainContentSurface_yl8z4_2[data-app-shell-main-surface="default"] > ._WorkspaceContent_yl8z4_2 [data-thread-scroll-footer="true"]:has([data-thread-focus-mode]) { background-color: transparent !important; }
+html[data-codex-dragon-background="v1"] #root ${legacyPaintSelector} [data-thread-scroll-footer="true"] > div[aria-hidden="true"].pointer-events-none.absolute.inset-x-0.z-0.bottom-0.bg-surface { background-color: transparent !important; }
+html[data-codex-dragon-background="v1"] #root ${legacyPaintSelector} .thread-scroll-container > div > div[aria-hidden="true"].pointer-events-none.sticky.bottom-0.z-10 > div[aria-hidden="true"].pointer-events-none.absolute.inset-x-0.z-0.from-surface { background-image: none !important; }
+html[data-codex-dragon-background="v1"] #root ${legacyPaintSelector} [data-thread-scroll-footer="true"]:has([data-thread-focus-mode]) { background-color: transparent !important; }
 #codex-dragon-stage-v1 { position: absolute; inset: 0; z-index: -20; pointer-events: none; overflow: hidden; background: var(--color-surface, #101518); contain: strict; }
 #codex-dragon-stage-v1 video { width: 100%; height: 100%; object-fit: cover; object-position: right center; opacity: 0; }
 #codex-dragon-stage-v1[data-ready="true"] video { opacity: .26; animation: codex-dragon-reveal-v1 650ms ease both; }
@@ -335,7 +365,8 @@ html[data-codex-dragon-background="v1"] #root main._MainContentSurface_yl8z4_2[d
     code = 'paused'; scheduleGap();
     notify();
   }
-  const mainSelector = '#root main[data-app-shell-main-surface="default"]';
+  const mainSelector = '#root ' + mainSurfaceSelector;
+  const utilityContentLayouts = new Set(['default', 'thread-edge-scroll', 'document-edge-scroll', 'custom-titlebar', 'full-bleed']);
   const shellComponents = ['Layout', 'Workspace', 'MainContentClip', 'LeftPanel', 'ApplicationMenuTopBar', 'FloatingHeader', 'MainContentTopFade', 'PageSurface', 'PageSurfaceLayout', 'ApplicationMenuPageSurfaceLayout'];
   let layoutSurfaceKind = 'none';
   function emptyLayoutAudit() {
@@ -355,7 +386,8 @@ html[data-codex-dragon-background="v1"] #root main._MainContentSurface_yl8z4_2[d
   let boundShellNodes = [], watchedShellNodes = [], boundStyleNodes = [], watchedStyleNodes = [], bindingAttributes = [];
   const shellAttributeFilter = ['class', 'id', 'aria-hidden', 'data-app-shell-main-surface', 'data-app-shell-frame',
     'data-app-shell-page-surface', 'data-app-shell-workspace-row', 'data-app-shell-main-content-top-fade',
-    'data-app-shell-left-panel-appearance', 'data-composer-surface-variant'];
+    'data-app-shell-left-panel-appearance', 'data-composer-surface-variant', 'data-app-shell-workspace',
+    'data-app-shell-surface-backing', 'data-app-shell-main-content-layout', 'data-codex-history-swipe-page', 'tabindex'];
   function attributeSignature(node) { return shellAttributeFilter.map(name => node.getAttribute(name)); }
   function cachedAttributesIntact() {
     // Before attach the shell is revalidated without using this cache. Once
@@ -382,8 +414,8 @@ html[data-codex-dragon-background="v1"] #root main._MainContentSurface_yl8z4_2[d
     // hashes each component separately. Keep the structural checks for both.
     return first && second && first.moduleHash === second.moduleHash;
   }
-  function bindSurfaceStyle(main, workspace, mainToken, workspaceToken, frameOnly = false) {
-    const core = (frameOnly ? 'frame ' : 'main ') + mainToken.token + ' ' + workspaceToken.token;
+  function bindSurfaceStyle(main, workspace, { mainToken, workspaceToken, frameOnly = false, utilityNodes } = {}) {
+    const core = utilityNodes ? 'utility main' : (frameOnly ? 'frame ' : 'main ') + mainToken.token + ' ' + workspaceToken.token;
     // A composer may mount lazily below the unobserved conversation subtree.
     // Recheck its small semantic signature on existing surface/status checks;
     // never observe chat text or invalidate styles for ordinary token streaming.
@@ -400,7 +432,8 @@ html[data-codex-dragon-background="v1"] #root main._MainContentSurface_yl8z4_2[d
     }
     if (attached && !bindingsDirty && bindingMain === main && bindingCore === core && bindingComposer === composer && cachedAttributesIntact()) { layoutReason = 'ready'; return true; }
     layoutReason = 'shell-shape';
-    const bindings = frameOnly ? { Layout: mainToken.token } : { MainContentSurface: mainToken.token, WorkspaceContent: workspaceToken.token };
+    const bindings = utilityNodes ? { utilityMain: true } : frameOnly ? { Layout: mainToken.token } :
+      { MainContentSurface: mainToken.token, WorkspaceContent: workspaceToken.token };
     if (composer) bindings.ComposerLayoutRoot = composer;
     const nodes = new Set(), spines = new Set(), containers = new Set([workspace]);
     let ancestor = main, depth = 0;
@@ -447,29 +480,32 @@ html[data-codex-dragon-background="v1"] #root main._MainContentSurface_yl8z4_2[d
     const chrome = root.querySelectorAll('#app-shell-sidebar, [data-app-shell-left-panel-appearance]');
     if (chrome.length > 32) return false;
     for (const node of chrome) { if (node.closest('[data-app-shell-active-page="false"]')) continue; nodes.add(node); containers.add(node); if (!children(node)) return false; }
-    const attributeNodes = new Set([...spines, ...containers, ...composerNodes]);
-    for (const node of nodes) {
-      if (node.closest('[data-app-shell-active-page="false"]')) continue;
-      for (const name of shellComponents) {
-        if (!componentClasses(node, name).length) continue;
-        const actual = componentToken(node, name);
-        if (!compatibleShellTokens(actual, mainToken) || (bindings[name] && bindings[name] !== actual.token)) return false;
-        bindings[name] = actual.token; attributeNodes.add(node);
+    const attributeNodes = new Set([...spines, ...containers, ...composerNodes, ...(utilityNodes || [])]);
+    if (!utilityNodes) {
+      for (const node of nodes) {
+        if (node.closest('[data-app-shell-active-page="false"]')) continue;
+        for (const name of shellComponents) {
+          if (!componentClasses(node, name).length) continue;
+          const actual = componentToken(node, name);
+          if (!compatibleShellTokens(actual, mainToken) || (bindings[name] && bindings[name] !== actual.token)) return false;
+          bindings[name] = actual.token; attributeNodes.add(node);
+        }
       }
     }
     if (attributeNodes.size > 128) return false;
     const signature = JSON.stringify(bindings);
     if (signature !== styleBinding) {
-      // Change exact selectors only. All paint values and accessibility rules
-      // remain byte-for-byte from the audited template; removal rolls back.
-      let css = styleTemplate.replace(/_([A-Za-z]+)_(?:yl8z4|boifs)_2\b/g, (token, name) => bindings[name] || token);
-      if (frameOnly) {
+      let css = styleTemplate;
+      if (utilityNodes) {
+        css = css.replaceAll(legacyPaintSelector, utilityPaint).replace(legacyMainSelector, utilityMain)
+          .replace(mainSurfaceSelector + ' .', utilityMain + ' .').replace(legacyBackingSelector, utilityBacking);
+        css += utilityChromeStyle;
+      } else if (frameOnly) {
         // The audited shell also hosts home/settings pages without a main.
         // Only this exact frame's composer and inert decoration are styled.
-        const frameSelector = '[data-app-shell-frame="true"].' + mainToken.token;
-        css = css.replace('main[data-app-shell-main-surface="default"] .', frameSelector + ' .');
+        css = css.replace(mainSurfaceSelector + ' .', frameSelector + '.' + mainToken.token + ' .');
       }
-      style.textContent = css;
+      style.textContent = css.replace(/_([A-Za-z]+)_(?:yl8z4|boifs)_2\b/g, (token, name) => bindings[name] || token);
       styleBinding = signature;
     }
     bindingMain = main; bindingCore = core; bindingComposer = composer; bindingsDirty = false;
@@ -535,9 +571,44 @@ html[data-codex-dragon-background="v1"] #root main._MainContentSurface_yl8z4_2[d
     }
     if (!pageSurface || decorationInvalid) return null;
     layoutAudit.layoutAuditDecorationValid = 1;
-    if (!bindSurfaceStyle(selected, row, token, componentToken(pageSurface, 'PageSurface'), true)) return null;
+    if (!bindSurfaceStyle(selected, row, { mainToken: token, workspaceToken: componentToken(pageSurface, 'PageSurface'), frameOnly: true })) return null;
     layoutSurfaceKind = 'frame';
     return selected;
+  }
+  function uniqueDirectChild(parent, selector) {
+    if (parent.children.length > 128) return null;
+    const matches = parent.querySelectorAll(':scope > ' + selector);
+    return matches.length === 1 ? matches[0] : null;
+  }
+  function supportedUtilityMain(main) {
+    // Store shell 26.1117 uses utility classes for the frame and main. Validate
+    // the dedicated shell markers and their direct relationships before painting.
+    if (!main.matches(utilityMainSelector) || !main.parentElement.matches(utilityParentSelector)) return null;
+    layoutReason = 'frame-count';
+    const frames = root.querySelectorAll(frameSelector);
+    if (frames.length > 128) return null;
+    const activeFrames = [...frames].filter(frame => frame.matches(activePage));
+    if (activeFrames.length !== 1 || activeFrames[0].tagName !== 'DIV') return null;
+    const [frame] = activeFrames;
+    layoutReason = 'frame-row';
+    const row = uniqueDirectChild(frame, rowSelector);
+    if (row?.tagName !== 'DIV') return null;
+    layoutReason = 'workspace-shape';
+    const workspace = uniqueDirectChild(row, workspaceSelector);
+    if (workspace?.tagName !== 'DIV' || !workspace.contains(main.parentElement)) return null;
+    const paint = uniqueDirectChild(main, utilityPaintSelector);
+    const content = paint && uniqueDirectChild(paint, contentSelector);
+    if (content?.tagName !== 'DIV' || !utilityContentLayouts.has(content.getAttribute('data-app-shell-main-content-layout'))) return null;
+    layoutReason = 'frame-shape';
+    if (workspace.children.length > 128) return null;
+    const backing = workspace.querySelectorAll(':scope > ' + backingSelector);
+    const hasPageSurface = frame.getAttribute('data-app-shell-page-surface') === 'true';
+    if (backing.length !== (hasPageSurface ? 1 : 0) ||
+        (hasPageSurface && !backing[0].matches('div[aria-hidden="true"]' + activePage))) return null;
+    const utilityNodes = [frame, row, workspace, content, ...backing];
+    if (!bindSurfaceStyle(main, paint, { utilityNodes })) return null;
+    layoutSurfaceKind = 'main';
+    return main;
   }
   function supportedSurface() {
     layoutSurfaceKind = 'none'; layoutAudit = emptyLayoutAudit();
@@ -547,26 +618,29 @@ html[data-codex-dragon-background="v1"] #root main._MainContentSurface_yl8z4_2[d
     const mains = document.querySelectorAll(mainSelector);
     layoutReason = 'main-count';
     if (mains.length > 128) return null;
-    let selected = null, selectedChild = null, selectedMain = null, selectedWorkspace = null;
+    let selected = null;
     for (const main of mains) {
       // Cached inactive conversations are genuine but are not the destination.
       if (main.closest('[data-app-shell-active-page="false"]')) continue;
-      if (selected) { layoutReason = 'main-count'; return null; }
-      const actualMain = componentToken(main, 'MainContentSurface');
-      if (!actualMain) { layoutReason = 'main-token'; return null; }
-      layoutReason = 'workspace-shape';
-      let actualWorkspace = null;
-      for (const child of main.children) {
-        if (!componentClasses(child, 'WorkspaceContent').length) continue;
-        if (actualWorkspace) return null;
-        actualWorkspace = componentToken(child, 'WorkspaceContent'); selectedChild = child;
-        if (!compatibleShellTokens(actualWorkspace, actualMain)) return null;
-      }
-      if (!actualWorkspace) return null;
-      selected = main; selectedMain = actualMain; selectedWorkspace = actualWorkspace;
+      if (selected) return null;
+      selected = main;
     }
     if (!selected) return supportedFrameSurface();
-    if (!bindSurfaceStyle(selected, selectedChild, selectedMain, selectedWorkspace)) return null;
+    layoutReason = 'main-token';
+    const mainToken = componentToken(selected, 'MainContentSurface');
+    if (!mainToken) {
+      return componentClasses(selected, 'MainContentSurface').length ? null : supportedUtilityMain(selected);
+    }
+    layoutReason = 'workspace-shape';
+    let workspace = null, workspaceToken;
+    for (const child of selected.children) {
+      if (!componentClasses(child, 'WorkspaceContent').length) continue;
+      if (workspace) return null;
+      workspace = child;
+      workspaceToken = componentToken(workspace, 'WorkspaceContent');
+      if (!compatibleShellTokens(workspaceToken, mainToken)) return null;
+    }
+    if (!workspace || !bindSurfaceStyle(selected, workspace, { mainToken, workspaceToken })) return null;
     layoutSurfaceKind = 'main';
     return selected;
   }
